@@ -8,12 +8,10 @@ Panels:
         - /TF1/Frames1
         - /Frontiers1/Namespaces1
         - /Frontiers2/Namespaces1
-        - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
-        - /State Manager1
         - /State Manager1/Namespaces1
       Splitter Ratio: 0.769452453
-    Tree Height: 552
+    Tree Height: 437
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -37,6 +35,8 @@ Panels:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
+Toolbars:
+  toolButtonStyle: 2
 Visualization Manager:
   Class: ""
   Displays:
@@ -63,6 +63,11 @@ Visualization Manager:
       Collision Enabled: false
       Enabled: true
       Links:
+        /camera_0_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         /imu_link:
           Alpha: 1
           Show Axes: false
@@ -77,11 +82,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
         base_link_inertia:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hokuyo:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -106,6 +106,25 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        rotor_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rotor_5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        velodyne:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        velodyne_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -121,11 +140,11 @@ Visualization Manager:
           Value: false
         base_link_inertia:
           Value: false
+        camera_0_link:
+          Value: true
         fcu:
           Value: false
         fcu_frd:
-          Value: false
-        hokuyo:
           Value: false
         local_origin:
           Value: false
@@ -137,6 +156,10 @@ Visualization Manager:
           Value: true
         uav_1_home:
           Value: false
+        velodyne:
+          Value: true
+        velodyne_base_link:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -149,8 +172,11 @@ Visualization Manager:
               base_link:
                 base_link_inertia:
                   {}
-                hokuyo:
+                camera_0_link:
                   {}
+                velodyne_base_link:
+                  velodyne:
+                    {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -238,25 +264,19 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /frontiers/known_space
       Name: Frontiers
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        corridor_free: false
-        corridor_occupied: false
-        lazy_theta_star_waypoint: false
-        rejected_neighors: false
-        s: false
-        straight_line: true
-        usable_neighors: false
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -291,23 +311,16 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /state_manager_viz
       Name: State Manager
       Namespaces:
-        frontier: false
-        geofence: true
-        oppair_end: true
-        oppair_path: true
-        oppair_start: true
-        start: false
-        under_unknown_point: true
-        unknown_point: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
-    Background Color: 170; 255; 255
+    Background Color: 49; 49; 49
     Default Light: true
     Fixed Frame: uav_1_home
     Frame Rate: 30
@@ -325,33 +338,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 43.1701355
+      Distance: 47.4423943
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -14.6107817
-        Y: -1.43057585
-        Z: -0.1061465
+        X: -8.29621029
+        Y: 1.55293369
+        Z: -3.10842896
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.234796599
+      Pitch: 0.759795904
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.23318291
+      Yaw: 5.68133879
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: false
+    collapsed: true
   Height: 1028
-  Hide Left Dock: false
+  Hide Left Dock: true
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd00000003000000000000016a0000037afc0200000009fb0000001200530065006c0065006300740069006f006e0000000028000000960000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000002800000269000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0056006900650077007301000002970000010b000000ad00ffffff000000010000010f0000036cfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a0000036c000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000003000005820000003efc0100000002fb0000000800540069006d00650100000000000005820000030000fffffffb0000000800540069006d00650100000000000004500000000000000000000004120000037a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000003000000000000016a0000037afc0200000009fb0000001200530065006c0065006300740069006f006e0000000028000000960000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007300000000280000037a000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0056006900650077007300000002ab00000113000000ad00ffffff000000010000010f0000036cfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a0000036c000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000003000003ad0000003efc0100000002fb0000000800540069006d00650100000000000003ad0000030000fffffffb0000000800540069006d00650100000000000004500000000000000000000003ad0000037a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -360,6 +373,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1410
-  X: 510
+  Width: 941
+  X: 2899
   Y: 24

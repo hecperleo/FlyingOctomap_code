@@ -1,0 +1,70 @@
+<launch>
+    <arg name="multi" default="false"/>
+    <arg name="ns_prefix" default="uav_"/>
+    <arg name="mode" default="sitl"/>
+    <arg name="pose_frame_id" default=""/>
+    <!-- To publish ual/pose in other frame than local, e.g. map -->
+    <arg name="ual_server" default="on"/>
+    <arg name="ual_pub_rate" default="30.0"/>
+    <arg name="mavros_offboard_rate" default="30.0"/>
+    <arg name="robot_model" default="iris_hokuyo"/>
+
+
+    <rosparam file="$(find architecture)/cfg/sim_hitl_params.yaml" command="load" />
+    <!-- #########################  Robot  ######################################### -->
+    <param name="robot_description" command="$(eval 'xacro --inorder ' + find('robots_description') + '/models/' + arg('robot_model') + '/model.xacro')"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="tf_uav1_baselink" args="0 0 0 0 0 0 1 uav_1 base_link" />
+
+    <group if="$(eval mode=='sitl')">
+        <!-- Launch Gazebo simulation -->
+        <rosparam param="/use_sim_time">true</rosparam>
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find architecture)/worlds/huge_block.world">
+            <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam>            <!-- [lat,lon,alt] -->
+        </node>
+    </group>
+
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
+        <arg name="id" value="1"/>
+        <arg name="material" value="Blue"/>
+        <arg name="mode" value="$(arg mode)"/>
+        <arg name="x" value="0"/>
+        <arg name="y" value="0"/>
+        <arg name="z" value="0"/>
+        <arg name="yaw" value="0"/>
+        <arg name="robot_model" value="$(arg robot_model)"/>
+    </include>
+
+    <!-- #############  UAL -> Git branch: laser_models -> Git fork: hecperleo  ############### -->
+    <include file="$(find architecture)/launch/test_server.launch"/>
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture" output="screen" />
+
+    <!-- #########################  Rviz ######################################### -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" required="true"/>
+
+    <!-- #######################  Hokuyo  ############################# -->
+    <group if="$(eval robot_model=='iris_hokuyo')">
+        <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
+            <rosparam command="load" file="$(find architecture)/cfg/sim_hitl_params.yaml" />
+            <param name="target_frame" value="base_link" />
+            <remap from="cloud_filtered" to="free_cloud" />
+            <remap from="scan" to="hokuyo_laser_scan" />
+        </node>
+    </group>>
+    <!-- #######################  Octomap  ######################################## -->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+        <param name="frame_id" type="string" value="map" />
+        <remap from="cloud_in" to="/free_cloud" />
+        <param name="latch" value="false" />
+        <param name="publish_free_space" value="true"/>
+        <param name="sensor_model/max_range" value="10"/>
+        <param name="sensor_model/hit" value="0.74"/>
+        <param name="sensor_model/miss" value="0.48464"/>
+        <param name="resolution" value="0.5" />
+    </node>
+    <!-- #######################  Architecture nodes  ############################# -->
+    <node name="lazy_theta_star" type="ltStar_async_node" pkg="lazy_theta_star" output="screen" />
+    <node name="state_manager" type="state_manager_node" pkg="architecture" output="screen" />
+    <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers" output="screen" />
+
+</launch>
