@@ -20,7 +20,7 @@ namespace rviz_interface
     {
         uint32_t shape = visualization_msgs::Marker::LINE_LIST; 
         // Set the frame ID and timestamp.  See the TF tutorials for information on these. 
-        marker.header.frame_id = "/map"; 
+        marker.header.frame_id = "/uav_1/odom"; 
         marker.header.stamp = ros::Time::now(); 
         marker.type = shape; 
         marker.action = visualization_msgs::Marker::ADD; 
@@ -103,7 +103,7 @@ namespace rviz_interface
     {
         uint32_t shape = visualization_msgs::Marker::CUBE;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = "frontier_neighborhood";
         marker.id = id;
@@ -140,7 +140,7 @@ namespace rviz_interface
     {
         uint32_t shape = visualization_msgs::Marker::CUBE;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = ns;
         marker.id = id;
@@ -244,7 +244,7 @@ namespace rviz_interface
     {   
         uint32_t shape = visualization_msgs::Marker::SPHERE;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = ns;
         marker.id = marker_id;
@@ -276,7 +276,7 @@ namespace rviz_interface
         marker.id = id;
         marker.type = visualization_msgs::Marker::SPHERE;
         // Basic
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position = candidate;
@@ -335,7 +335,7 @@ namespace rviz_interface
         marker.id = 22;
         marker.type = visualization_msgs::Marker::SPHERE;
         // Basic
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position = candidate;
@@ -361,7 +361,7 @@ namespace rviz_interface
         marker.id = 52;
         marker.type = visualization_msgs::Marker::SPHERE;
         // Basic
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position = candidate;
@@ -387,7 +387,7 @@ namespace rviz_interface
         marker.id = 23;
         marker.type = visualization_msgs::Marker::SPHERE;
         // Basic
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position = candidate;
@@ -413,7 +413,7 @@ namespace rviz_interface
         marker.id = 53;
         marker.type = visualization_msgs::Marker::SPHERE;
         // Basic
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position = candidate;
@@ -522,7 +522,7 @@ namespace rviz_interface
         float size = 0.1f;
         uint32_t shape = visualization_msgs::Marker::SPHERE;
         visualization_msgs::Marker marker;
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = "closed";
         marker.id = id;
@@ -559,7 +559,7 @@ namespace rviz_interface
         uint32_t shape = visualization_msgs::Marker::CUBE;
         visualization_msgs::Marker marker;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = "frontier_candidate";
         marker.id = 10;
@@ -598,7 +598,7 @@ namespace rviz_interface
     {
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = ns;
         marker.id = request_id;
@@ -631,7 +631,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.id = id;
         marker.type = shape;
@@ -675,7 +675,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.id = id;
         marker.type = shape;
@@ -720,7 +720,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = "path_unreachable";
         marker.id = 4000 + id;
@@ -757,7 +757,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = "parent";
         marker.id = 20000 + ( std::rand() % ( 9999 + 1 ) );;
@@ -793,7 +793,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.id = 50000 + ( std::rand() % ( 9999 + 1 ) );;
         marker.ns = "corridor_";
@@ -830,7 +830,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.id = 500 + id;
         marker.ns = "corridor_";
@@ -872,7 +872,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.id = 500+id;
         marker.ns = "straight_line";
@@ -911,7 +911,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.id = 60000 + ( std::rand() % ( 9999 + 1 ) );;
         marker.ns = "corridor_center";
@@ -947,7 +947,7 @@ namespace rviz_interface
     {   
         uint32_t shape = visualization_msgs::Marker::CUBE;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = "lazy_theta_star_waypoint";
         marker.id = waypoint_id + (series * 1000);
@@ -977,7 +977,7 @@ namespace rviz_interface
     //     {
     //         double size = 0.5;
     //         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-    //         marker.header.frame_id = "/map";
+    //         marker.header.frame_id = "/uav_1/odom";
     //         marker.header.stamp = ros::Time::now();
     //         marker.ns = "neighbor";
     //         marker.id =  id;
@@ -1006,7 +1006,7 @@ namespace rviz_interface
     {
         double step = 0.2;
         visualization_msgs::Marker marker;
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "/uav_1/odom";
         marker.header.stamp = ros::Time::now();
         marker.ns = "position_log";
         marker.id = id;
