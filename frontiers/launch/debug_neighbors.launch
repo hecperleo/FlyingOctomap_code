@@ -24,6 +24,7 @@
     <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
 
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/realUAV.rviz" />
+    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 10" />
 
     <!-- #######################  Octomap  ######################################## -->
     <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find frontiers)/test/data/circle_1m.bt">    
