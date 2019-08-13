@@ -18,16 +18,17 @@ namespace goal_state_machine
     std::ofstream csv_file;
     #endif
 
-    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true)
+    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true)
 	{
-
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
 
         frontier_srv.response.frontiers_found = 0;
         frontier_srv.response.success = false;
         frontier_request_count = 0;
+
+		flyby_length = distance_inFront + distance_behind;
 
 		double distance_from_unknown_under = 1;
 		double distance_behind_under, distance_inFront_under;
@@ -85,6 +86,7 @@ namespace goal_state_machine
 		
 		return LazyThetaStarOctree::is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, false));
 	}
+
 
 	bool GoalStateMachine::IsOPPairValid() 
     {
@@ -260,10 +262,13 @@ namespace goal_state_machine
         }
         Eigen::Vector3d ortho = Eigen::Vector3d::UnitZ().cross(direction);
         ortho.normalize();
-        Eigen::Vector3d a = start + (ortho * range);
-        Eigen::Vector3d b = a + direction;
-        Eigen::Vector3d c = start - (ortho * range);
-        Eigen::Vector3d d = c + direction;
+        direction.normalize();
+        double extension  = local_fence_side - flyby_length;
+        Eigen::Vector3d e = start - (direction * extension/2); 
+        Eigen::Vector3d a = e + (ortho     * range);
+        Eigen::Vector3d b = a + (direction * local_fence_side);
+        Eigen::Vector3d c = e - (ortho     * range);
+        Eigen::Vector3d d = c + (direction * local_fence_side);
         // Geofence
         // Min
         frontier_srv.request.min.x = std::max(std::min({a.x(), b.x(), c.x(), d.x()}), geofence_min.x);
@@ -307,10 +312,13 @@ namespace goal_state_machine
 	        // octomath::Vector3 end_ortho(start_o.x()+ortho.x(), start_o.y()+ortho.y(), start_o.z()+ortho.z());
 	        // rviz_interface::build_arrow_type(start_o, end_ortho, marker_array, 21, false);
 	        // ROS_INFO_STREAM("");
+	        // ROS_INFO_STREAM("Extension = " << extension );
 	        // ROS_INFO_STREAM("Start = (" << start.x() << ", " << start.y() << ", " << start.z() << ")");
 	        // ROS_INFO_STREAM("End = (" << end.x() << ", " << end.y() << ", " << end.z() << ")");
 	        // ROS_INFO_STREAM("End Ortho = (" << end_ortho.x() << ", " << end_ortho.y() << ", " << end_ortho.z() << ")");
 	        
+	        // ROS_INFO_STREAM("e = (" << e.x() << ", " << e.y() << ", " << e.z() << ")");
+
 	        // ROS_INFO_STREAM("a = (" << a.x() << ", " << a.y() << ", " << a.z() << ")");
 	        // ROS_INFO_STREAM("b = (" << b.x() << ", " << b.y() << ", " << b.z() << ")");
 
@@ -322,13 +330,15 @@ namespace goal_state_machine
 	        // ROS_INFO_STREAM("Request " << frontier_srv.request);
 	        octomath::Vector3 min(frontier_srv.request.min.x, frontier_srv.request.min.y, frontier_srv.request.min.z);
 	        octomath::Vector3 max(frontier_srv.request.max.x, frontier_srv.request.max.y, frontier_srv.request.max.z);
+	        // ROS_INFO_STREAM("Min = (" << frontier_srv.request.min.x << ", " << frontier_srv.request.min.y << ", " << frontier_srv.request.min.z << ")");
+	        // ROS_INFO_STREAM("Max = (" << frontier_srv.request.max.x << ", " << frontier_srv.request.max.y << ", " << frontier_srv.request.max.z<< ")");
 	        rviz_interface::publish_geofence (min, max, marker_array);
 
 	        pi.marker_pub.publish(marker_array);
         }
 	}
 
-	bool GoalStateMachine::findFrontiers_CallService(Eigen::Vector3d& uav_position)
+	bool GoalStateMachine::findFrontiersAllMap(Eigen::Vector3d& uav_position)
 	{
 		first_request = false;
 		if (global)
@@ -340,12 +350,39 @@ namespace goal_state_machine
 		{
 			fillLocalGeofence();
 		}
+		frontier_srv.request.frontier_amount = 20;
+		bool found_frontiers = findFrontiers_CallService(uav_position);
+		first_global_request = false;
+		if (found_frontiers)
+		{
+	        // ROS_INFO_STREAM("[Goal SM] Request " << frontier_srv.request);
+	        if(global)
+        		ROS_INFO_STREAM("[Goal SM] The global search still found a frontier.");
+        	else
+        		ROS_INFO_STREAM("[Goal SM] Just the local search was was enough to find a frontier");
+			return true;
+		} 
+		// If it was a local search, there is still global search;
+		if(!global)
+		{
+			global = true;
+			first_global_request = true;
+			return findFrontiersAllMap(uav_position);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	bool GoalStateMachine::findFrontiers_CallService(Eigen::Vector3d& uav_position)
+	{
+		
 		frontier_srv.request.current_position.x = uav_position.x();
 		frontier_srv.request.current_position.y = uav_position.y();
 		frontier_srv.request.current_position.z = uav_position.z();
-		frontier_srv.request.frontier_amount = 20;
 		frontier_srv.request.request_id = frontier_request_count;
-		frontier_srv.request.new_request = new_map;
+		frontier_srv.request.new_request = new_map || first_global_request;
 
 		#ifdef SAVE_CSV
 		auto start_millis         = std::chrono::high_resolution_clock::now();
@@ -368,6 +405,17 @@ namespace goal_state_machine
 				resetOPPair(uav_position);
 				return true;
             }
+            else
+            {
+            	// ROS_INFO_STREAM("[Goal SM] The frontier node identified no further frontiers.");
+            	if(global)
+            	{
+            		resetOPPair(uav_position);
+            		ROS_INFO_STREAM("[Goal SM] The search was conducted within the global geofence identified no further frontiers.");
+            	}
+            	// else
+            	// 	ROS_INFO_STREAM("[Goal SM] The search was local, maybe there are frontiers still!");
+            }
         } 
         else
         {
@@ -384,6 +432,47 @@ namespace goal_state_machine
 		}
 		else ROS_ERROR("[goal sm] There was no flyby available");
 	}
+
+	void GoalStateMachine::initLookupTable(double resolution, int tree_depth)
+	{
+    	LazyThetaStarOctree::fillLookupTable(resolution, tree_depth, sidelength_lookup_table); 
+	}
+
+
+    bool GoalStateMachine::IsOPStartReachable()
+    {
+		octomath::Vector3 cell_center_coordinates_start (getCurrentOPPairs().get_current_start().x(), getCurrentOPPairs().get_current_start().y(), getCurrentOPPairs().get_current_start().z());
+
+    	double cell_size_start = -1;
+		LazyThetaStarOctree::updateToCellCenterAndFindSize(cell_center_coordinates_start, *octree, cell_size_start, sidelength_lookup_table);
+
+		LazyThetaStarOctree::unordered_set_pointers neighbors;
+		LazyThetaStarOctree::generateNeighbors_filter_pointers(neighbors, cell_center_coordinates_start, cell_size_start, octree->getResolution(), *octree);
+		int n_id = 1500;
+		for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
+		{
+			octomap::OcTreeKey key = octree->coordToKey(*n_coordinates);
+		    int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, *octree);
+		    double cell_size = LazyThetaStarOctree::findSideLenght(octree->getTreeDepth(), depth, sidelength_lookup_table);
+
+			geometry_msgs::Point neighbor_v;
+			neighbor_v.x = n_coordinates->x();
+			neighbor_v.y = n_coordinates->y();
+			neighbor_v.z = n_coordinates->z();
+			if( ! LazyThetaStarOctree::is_flight_corridor_free( LazyThetaStarOctree::InputData(*octree, cell_center_coordinates_start, *n_coordinates, path_safety_margin ), pi) )
+			{
+				// rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, n_id, cell_size);
+				
+			}
+			else
+			{
+				// rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, n_id, cell_size);
+				return true;
+			}
+			n_id++;
+		}
+		return false;
+    }
 
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
 	{	
@@ -409,7 +498,7 @@ namespace goal_state_machine
 				#endif
 				while(existsNextOPPair)
 				{
-					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() )
+					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
 						has_more_goals = true;
 						#ifdef SAVE_CSV
@@ -434,7 +523,7 @@ namespace goal_state_machine
 				#endif
 				while(existsNextOPPair)
 				{
-					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() )
+					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
 						has_more_goals = true;
 						#ifdef SAVE_CSV
@@ -453,7 +542,7 @@ namespace goal_state_machine
 			frontier_index++;
 			if(!hasNextFrontier())
 			{
-				has_more_goals = findFrontiers_CallService(uav_position);
+				has_more_goals = findFrontiersAllMap(uav_position);
 			}
 		}
 		#ifdef SAVE_CSV

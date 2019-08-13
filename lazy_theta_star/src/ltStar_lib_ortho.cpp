@@ -4,7 +4,7 @@
 #include <orthogonal_planes.h>
 
 #define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
-// #define RUNNING_ROS 1 	// enable to publish markers on rViz
+#define RUNNING_ROS 1 	// enable to publish markers on rViz
 
 
 namespace std
@@ -237,16 +237,22 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
-				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
-				// publish_input.marker_pub.publish(marker_array);
+				if(publish_input.publish) 
+				{
+					rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+					publish_input.marker_pub.publish(marker_array);
+				}
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin)) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+    			if(publish_input.publish) 
+				{
+					rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+					publish_input.marker_pub.publish(marker_array);
+				}
 				obstacle_hit_count++;
-				// publish_input.marker_pub.publish(marker_array);
 				return CellStatus::kOccupied; 
 			}   
 			else
@@ -255,7 +261,7 @@ namespace LazyThetaStarOctree{
 				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
 			}
 		}
-		// publish_input.marker_pub.publish(marker_array);
+		if(publish_input.publish) publish_input.marker_pub.publish(marker_array);
 		return CellStatus::kFree; 
 	}
 
@@ -382,6 +388,7 @@ namespace LazyThetaStarOctree{
 				oss << "s node " << *(s->coordinates) << " has no line of sight with the current parent " << *(s->parentNode->coordinates) << "(path 2)  and node of the neighbors are visible either (path 1). ";
 				log_file << oss.str() << std::endl;
 				oss << "No path 1 was found, adding to closed a bad node  ";
+				octree.writeBinaryConst(folder_name + "/out_of_range_.bt");
 				throw std::out_of_range( oss.str() );
 				// log_file << "No path 1 was found, adding to closed a bad node for " << *(s->coordinates) << std::endl;
 				return false;
@@ -408,7 +415,7 @@ namespace LazyThetaStarOctree{
 	{
 		bool success = true;
 		std::ofstream pathWaypoints;
-        pathWaypoints.open (folder_name + "/final_path.txt", std::ofstream::out | std::ofstream::app);
+        pathWaypoints.open (folder_name + "/current/final_path.txt", std::ofstream::out | std::ofstream::app);
 		std::shared_ptr<ThetaStarNode> current = std::make_shared<ThetaStarNode>(end);
 		std::shared_ptr<ThetaStarNode> parentAdd;
 		int safety_count = 0;
@@ -709,12 +716,12 @@ namespace LazyThetaStarOctree{
 						int id =  s_id*1000 + n_id;
 						if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input) )
 						{
-		    				// rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
+		    				rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
 							
 						}
 						else
 						{
-		    				// rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
+		    				rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
 						}
 						n_id++;
 					}
@@ -811,7 +818,7 @@ namespace LazyThetaStarOctree{
 		if(!solution_found)
 		{
 			ROS_WARN_STREAM("No solution found. Giving empty path.");
-			log_file <<  "[ltStar] All nodes were analyzed but the final node center " << disc_final_cell_center << " was never reached with " << resolution/2 << " tolerance. Start " << input.start << ", end " << input.goal << std::endl;
+			log_file <<  "[ltStar] All nodes were analyzed but the final node center " << *disc_final_cell_center << " was never reached with " << resolution/2 << " tolerance. Start " << input.start << ", end " << input.goal << std::endl;
 			// std::stringstream ss;
 			// ss << folder_name << "/" << input.start.x() << "_" << input.start.y() << "_" << input.start.z() << "_" 
 			// 	<<  input.goal.x() << "_" << input.goal.y() << "_" << input.goal.z() << "__noPath.bt";
@@ -994,15 +1001,15 @@ namespace LazyThetaStarOctree{
 		{
 			reply.success = false;
 			// std::stringstream octomap_name_stream;
-			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
-			// octree.writeBinary(octomap_name_stream.str());
+			octomap_name_stream << std::setprecision(2) << folder_name << "/current/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
+			octree.writeBinary(octomap_name_stream.str());
 			std::stringstream to_log_file_ss;
 			to_log_file_ss << "!!! No path !!!   " ;
 			to_log_file_ss << "Straight line length " << weightedDistance(disc_initial, disc_final);
 			to_log_file_ss <<  std::setprecision(2) << " from  " << "(" << disc_initial.x() << ", " << disc_initial.y() <<  ", " << disc_initial.z() << ")" ;
 			to_log_file_ss <<  std::setprecision(2) << " to " << "(" << disc_final.x() <<  ", " << disc_final.y() <<  ", " << disc_final.z() << ")" << std::endl;
 			std::ofstream log_file;
-    		log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
+    		log_file.open(folder_name + "/current/lazyThetaStar.log", std::ios_base::app);
     		log_file << to_log_file_ss.str();
 	    	log_file.close();
 		}

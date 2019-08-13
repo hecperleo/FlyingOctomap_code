@@ -140,7 +140,7 @@ namespace LazyThetaStarOctree{
                 double n_y = y_start + (j * resolution);
 
                 addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
-                addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
+                // addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
             }
         }
     }
@@ -254,11 +254,14 @@ namespace LazyThetaStarOctree{
                 else 
                 {
                     // it is not, search failed
-                    //ROS_WARN_STREAM("Failed to find depth ");
-      //               std::ostringstream oss_filename;
-      //               oss_filename << "/ros_ws/src/data/current/failed_to_find_depth__getNodeDepth_Octomap__" 
-      //                   << key[0] << "_" << key[1] << "_" << key[2] << ".bt";
-      //               octree.writeBinaryConst(oss_filename.str());
+                    ROS_WARN_STREAM("Failed to find depth ");
+                    std::ostringstream oss_filename;
+
+                    std::stringstream aux_envvar_home (std::getenv("HOME"));
+                    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+                    oss_filename << folder_name << "/current/failed_to_find_depth__getNodeDepth_Octomap__" 
+                        << key[0] << "_" << key[1] << "_" << key[2] << ".bt";
+                    octree.writeBinaryConst(oss_filename.str());
 		            std::ostringstream oss;
                     oss << "Failed to find depth, for key " << key[0] << " " << key[1] << " " << key[2] << " stopped at " << depth << ", tree depth is " << octree.getTreeDepth() << ". @getNodeDepth_Octomap";  
                     throw std::out_of_range(oss.str());

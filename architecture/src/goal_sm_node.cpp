@@ -22,7 +22,7 @@ namespace goal_sm_node
     octomap::OcTree* octree_inUse;
     std::atomic<bool> delete_octree_in_use;
     std::atomic<bool> discard_octree;
-    bool octomap_init;
+    bool lookup_table_init;
 
     std::shared_ptr<goal_state_machine::GoalStateMachine> goal_state_machine;
     ros::ServiceClient find_frontiers_client,  current_position_client, declare_unobservable_service;
@@ -75,7 +75,7 @@ namespace goal_sm_node
             goal_state_machine->NewMap();
             updateOctree();
             goal_state_machine->octree = octree_inUse;
-            goal_state_machine->findFrontiers_CallService(current_position_e);
+            goal_state_machine->findFrontiersAllMap(current_position_e);
         }
         res.success = goal_state_machine->NextGoal(current_position_e);
 
@@ -83,6 +83,7 @@ namespace goal_sm_node
         {
             goal_state_machine->getFlybyStart(res.start_flyby);
             goal_state_machine->getFlybyEnd(res.end_flyby);
+            res.global = goal_state_machine->isGlobal();
             res.unknown = goal_state_machine->get_current_frontier();
             goal_state_machine->publishGoalToRviz(current_position);
             geometry_msgs::Point frontier_geom = goal_state_machine->get_current_frontier();
@@ -108,7 +109,11 @@ namespace goal_sm_node
         }
         discard_octree = true;
         octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
-        octomap_init = true;
+        if(lookup_table_init)
+        {
+            goal_state_machine->initLookupTable(octree->getResolution(), octree->getTreeDepth());
+            lookup_table_init = false;
+        }
     }
 
 	bool declare_unobservable(architecture_msgs::DeclareUnobservable::Request  &req,
@@ -123,6 +128,7 @@ namespace goal_sm_node
         delete_octree_in_use = false;
         discard_octree = true;
         count  = 0;
+        lookup_table_init = true;
 
 		// Geofence
 	    geometry_msgs::Point geofence_min , geofence_max ;
@@ -135,12 +141,12 @@ namespace goal_sm_node
         nh.getParam("geofence_max/z", geofence_max.z);
 
         // Goal state machine
-        double sensing_distance, distance_inFront, distance_behind, circle_divisions, ltstar_safety_margin;
+        double sensing_distance, distance_inFront, distance_behind, circle_divisions, ltstar_safety_margin, local_fence_side;
         nh.getParam("oppairs/sensing_distance", sensing_distance);
         nh.getParam("oppairs/distance_inFront", distance_inFront);
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
-
+        nh.getParam("local_fence_side", local_fence_side);
         nh.getParam("path/safety_margin", ltstar_safety_margin);
 
         int range;
@@ -149,7 +155,7 @@ namespace goal_sm_node
         ros::ServiceClient check_visibility_client;
     	ros::ServiceClient check_flightCorridor_client;// = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
         rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
-    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance, range);
+    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance, range-10, local_fence_side);
 
 
     }

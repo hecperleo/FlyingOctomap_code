@@ -115,8 +115,15 @@ namespace state_manager_node
                 request.header.frame_id = "world";
                 request.start = state_data.ltstar_reply.waypoints[(state_data.ltstar_reply.waypoints.size()-1)].position;
                 request.goal  = state_data.next_goal_msg.start_flyby;
-                request.max_time_secs = max_time_secs;
                 request.safety_margin = ltstar_safety_margin;
+                if(state_data.next_goal_msg.global)
+                {
+                    request.max_time_secs = max_time_secs;
+                }
+                else
+                {
+                    request.max_time_secs = max_time_secs/4;
+                }
                 #ifdef SAVE_LOG
                 log_file << "[State manager] Requesting path " << request << std::endl;
                 #endif
@@ -171,7 +178,7 @@ namespace state_manager_node
         flight_plan_request.poses.push_back(pose_s);
 
         std::ofstream pathWaypoints;
-        pathWaypoints.open (folder_name + "/final_path_state_manager.txt", std::ofstream::out | std::ofstream::app);
+        pathWaypoints.open (folder_name + "/current/final_path_state_manager.txt", std::ofstream::out | std::ofstream::app);
         for (std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan_request.poses.begin(); i != flight_plan_request.poses.end(); ++i)
         {
             pathWaypoints << std::setprecision(5) << i->pose.position.x << ", " << i->pose.position.y << ", " << i->pose.position.z << std::endl;

@@ -81,16 +81,19 @@ namespace goal_state_machine
 	    bool								new_map;
 	    bool								global;
 	    bool								first_request;
+	    bool								first_global_request;
     	double 								path_safety_margin;
     	double 								sensing_distance;
+    	double 								local_fence_side;
+    	double 								flyby_length;
+		double 								sidelength_lookup_table[];
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
         unobservable_pair_set	 			unobservable_set; 
 	    int 								frontier_index;
         int 								oppair_id;
         int 								frontier_request_count;
         int 								range;
-		std::ofstream log_file;
-
+		std::ofstream 						log_file;
 
 		observation_lib::OPPairs& getCurrentOPPairs();
 		bool is_flightCorridor_free(double flight_corridor_width) ;
@@ -104,6 +107,8 @@ namespace goal_state_machine
 		bool checkFligthCorridor(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
 		bool fillLocalGeofence();
 		void saveSuccesfulFlyby();
+		bool findFrontiers_CallService(Eigen::Vector3d& uav_position);
+    	bool IsOPStartReachable();
 
 	    
 	    
@@ -111,17 +116,22 @@ namespace goal_state_machine
     	octomap::OcTree* octree;
 		geometry_msgs::Point get_current_frontier() ;
 		void get_current_frontier(Eigen::Vector3d& frontier) ;
-		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range);
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side);
 		~GoalStateMachine()
 		{
 			log_file.close();
 		}
-		bool findFrontiers_CallService(Eigen::Vector3d& uav_position);
+		bool findFrontiersAllMap(Eigen::Vector3d& uav_position);
 		void NewMap();
 		bool NextGoal(Eigen::Vector3d& uav_position);
 		void DeclareUnobservable();
 		bool IsObservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
 		void publishGoalToRviz(geometry_msgs::Point current_position);
+		void initLookupTable(double resolution, int tree_depth);
+		bool isGlobal()
+		{
+			return global;
+		}
 		int getUnobservableSetSize()
 		{
 			return unobservable_set.size();
